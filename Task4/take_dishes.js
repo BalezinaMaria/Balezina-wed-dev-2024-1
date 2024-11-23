@@ -1,29 +1,87 @@
-function setupAddButtons() {
-    document.querySelectorAll(".add-button").forEach(button => {
-        button.addEventListener("click", event => {
-            const dish_keyword = event.target.closest(".food-point").getAttribute("data-dish");
-            const dish = dishes.find(d => d.keyword === dish_keyword);
-            addToOrder(dish);
-        });
-    });
-}
+
 
 function getDishesCategory(keyword) {
-    for (const dish of dishes) {
-        if (dish.keyword === keyword) {
-            return dish.category;
-        }
-    }
-    return undefined;
+    const dish = dishes.find(d => d.keyword === keyword);
+    return dish ? dish.category : undefined;
 }
 
 function getDishesPrice(keyword) {
-    for (const dish of dishes) {
-        if (dish.keyword === keyword) {
-            return dish.price;
+    const dish = dishes.find(d =>d.keyword === keyword);
+    return dish ? dish.price : undefined;
+}
+
+function updateOrderCategory (dish, category, displayName, inputId) {
+    const orderCategory = 
+    document.querySelector(`.order-item-${category.replace("_", "-")}`);
+    orderCategory.innerHTML = `
+        <p><b>${displayName}</b></p>
+        <p>${dish.name} ${dish.price}₽</p>
+    `;
+    // Обновляем скрытое поле формы
+    const inputForm = document.getElementById(inputId);
+    inputForm.value = dish.keyword;
+
+    // Снимаем выделение со всех блюд в этой категории
+    document.querySelectorAll(".food-point").forEach(point => {
+        const pointDish = 
+        dishes.find(d => d.keyword === point.getAttribute("data-dish"));
+        if (pointDish && pointDish.category === category) {
+            point.classList.remove("selected");
         }
+    });
+
+    // Добавляем выделение для текущего блюда
+    document.querySelector(
+        `[data-dish="${dish.keyword}"]`).classList.add("selected");
+}
+
+function getEmptyMessage(category) {
+    switch (category) {
+    case "soup":
+        return "Блюдо не выбрано";
+    case "main_course":
+        return "Блюдо не выбрано";
+    case "beverages":
+        return "Напиток не выбран";
+    default:
+        return "Ничего не выбрано";
     }
-    return undefined;
+}
+
+function updateTotal() {
+    let totalSum = 0;
+    const selectedDishes = {};
+
+    // Считаем общую стоимость и собираем выбранные блюда
+    document.querySelectorAll(".food-point.selected").forEach(point => {
+        const keyword = point.getAttribute("data-dish");
+        const dish = dishes.find(d => d.keyword === keyword);
+        if (dish) {
+            totalSum += dish.price;
+            selectedDishes[dish.category] = dish;
+        }
+    });
+
+    // Проверяем категории на наличие выбранных блюд
+    ["soup", "main_course", "beverages"].forEach(category => {
+        if (!selectedDishes[category]) {
+            const orderCategory =
+            document.querySelector(`.order-item-${category.replace("_", "-")}`);
+            orderCategory.innerHTML = `<p>${getEmptyMessage(category)}</p>`;
+        }
+    });
+
+    // Обновляем блок с общей стоимостью
+    const orderCostElement = document.querySelector(".order-item-coast");
+    if (totalSum > 0) {
+        orderCostElement.style.display = "block";
+        orderCostElement.innerHTML = `
+            <p><b>Стоимость заказа</b></p>
+            <p class="coast">${totalSum}₽</p>
+        `;
+    } else {
+        orderCostElement.style.display = "none";
+    }
 }
 
 function addToOrder(dish) {
@@ -33,57 +91,28 @@ function addToOrder(dish) {
     orderItems.style.display = "block";
 
     if (dish.category === "soup") {
-        let order_category = document.querySelector(".order-item-soup");
-        order_category.innerHTML = `
-        <p><b>Суп</b></p>
-        <p>${dish.name} ${dish.price}₽</p>
-        `;
-        /*скрытое поле для формы заказа с ключевым словом, чтобы информация передалась при отправке формы*/
-        let input_form = document.getElementById("input-soup");
-        input_form.value = dish.keyword;
-
+        updateOrderCategory(dish, "soup", "Суп", "input-soup");
     } else if (dish.category === "main_course") {
-        let order_category = document.querySelector(".order-item-main-course");
-        order_category.innerHTML = `
-        <p><b>Главное блюдо</b></p>
-        <p>${dish.name} ${dish.price}₽</p>
-        `;
-        let input_form = document.getElementById("input-main-course");
-        input_form.value = dish.keyword;
-
+        updateOrderCategory(dish, "main_course", 
+            "Главное блюдо", "input-main-course");
     } else if (dish.category === "beverages") {
-        let order_category = document.querySelector(".order-item-beverages");
-        order_category.innerHTML = `
-        <p><b>Напиток</b></p>
-        <p>${dish.name} ${dish.price}₽</p>
-        `;
-        let input_form = document.getElementById("input-beverage");
-        input_form.value = dish.keyword;
+        updateOrderCategory(dish, "beverages", "Напиток", "input-beverage");
     }
-    /*идем по всем элементам и убираем selected у всех блюд одной категории */
-    document.querySelectorAll(".food-point").forEach(point => {
-        if (getDishesCategory(point.getAttribute("data-dish"))=== dish.category) {
-            point.classList.remove("selected");
-        }
-    });
-    /*добавляем selected к текущему блюду*/
-    document.querySelector(`[data-dish="${dish.keyword}"]`).classList.add("selected");
 
     updateTotal();
 }
 
-function updateTotal() {
-    let allPoints = document.querySelectorAll(".food-point");
-    let totalSum = 0;
-    allPoints.forEach(point => {
-        if (point.classList.contains("selected")) {
-            totalSum += getDishesPrice(point.getAttribute("data-dish"));
-        }
+
+function setupAddButtons() {
+    document.querySelectorAll(".add-button").forEach(button => {
+        button.addEventListener("click", event => {
+            const dish_keyword = 
+            event.target.closest(".food-point").getAttribute("data-dish");
+            const dish = dishes.find(d => d.keyword === dish_keyword);
+            if (dish) {
+                addToOrder(dish);
+            }
+        });
     });
-    let orderCoast = document.querySelector(".order-item-coast");
-    orderCoast.innerHTML = `
-    <p><b>Стоимость заказа</b></p>
-    <p class="coast">${totalSum}₽;</p>
-    `;
 }
 
