@@ -1,5 +1,5 @@
 "use strict";
-import {formControl} from "./formControl.js";
+import {validateForm} from "./formControl.js";
 import {setupAddButtons} from "./take_dishes.js";
 import {dishes} from "./dishes.js";
 
@@ -62,7 +62,7 @@ function display_dishes() {
         } 
     });
     setupAddButtons();
-    formControl();
+    validateForm();
 }
 
 

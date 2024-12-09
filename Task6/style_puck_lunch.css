@@ -280,7 +280,7 @@ button:hover {
     font-style: italic;
 }
 
-.popup-overlay {
+.notification-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -292,7 +292,7 @@ button:hover {
     align-items: center;
 }
 
-.popup {
+.notification-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -305,7 +305,7 @@ button:hover {
     height: 150px;
 }
 
-.popup button {
+.notification-container button {
     border: 1px solid #000;
     background: #fff;
     margin-top: 20px;
@@ -315,7 +315,7 @@ button:hover {
     font-size: 16px;
 }
 
-.popup button:hover {
+.notification-container button:hover {
     background-color: #000;
     color: white;
 }
